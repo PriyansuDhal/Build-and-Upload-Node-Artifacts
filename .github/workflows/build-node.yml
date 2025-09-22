@@ -1,9 +1,9 @@
-name: Build and Upload Node Artifacts
+name: Build, Upload, and Release Node Artifacts
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'   # Runs only when you push tags like v1.0.0, v0.2.1, etc.
   workflow_dispatch: {}
 
 jobs:
@@ -25,8 +25,32 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Upload build artifacts
+      - name: Upload dist artifacts
         uses: actions/upload-artifact@v4
         with:
           name: node-artifacts
           path: dist/**
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: node-artifacts
+          path: release_artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: release_artifacts/**
+          generate_release_notes: true
