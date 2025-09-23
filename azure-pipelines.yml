@@ -1,0 +1,24 @@
+trigger:
+- main    # Runs pipeline on commits to main branch
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '18.x'
+  displayName: 'Set up Node.js'
+
+- script: npm install
+  displayName: 'Install dependencies'
+
+- script: npm run build
+  displayName: 'Build app'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'dist'
+    ArtifactName: 'node-artifacts'
+    publishLocation: 'Container'
+  displayName: 'Publish artifacts'
